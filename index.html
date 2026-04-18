@@ -1,7 +1,264 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rohan Singh</title>
+<link rel="stylesheet" href="style.css">
+</head>
 <body>
-<h1>Hello World, it is morbin time yo</h1>
-<p>bigbird404's project</p>
+
+<canvas id="stars"></canvas>
+
+<div class="page-content">
+
+<h1>Rohan Singh</h1>
+
+<p>
+  I'm an ML Engineer at <a href="#">ChartrOS</a>, building clinical ML systems — RAG pipelines,
+  knowledge graphs, and LLM-based prediction over patient data. I recently finished my
+  MS in Computer Science at the University of Michigan (3.93), where I worked with
+  <a href="mailto:mmakar@umich.edu">Maggie Makar</a> and
+  <a href="#">Alex D'Amour</a> (Google DeepMind) on causal reasoning for
+  out-of-domain generalization. Before that, BA in CS &amp; Math from Cornell (3.80).
+</p>
+
+<p>
+  I'm interested in problems that require both mathematical depth and real engineering —
+  generalization, robustness, LLM internals, and building systems that work in production.
+</p>
+
+<div class="links">
+  <a href="mailto:rjs486@cornell.edu">Email</a> <span>|</span>
+  <!-- TODO: add your actual URLs -->
+  <a href="#">LinkedIn</a> <span>|</span>
+  <a href="#">GitHub</a> <span>|</span>
+  <a href="#">Resume</a>
+</div>
+
+<h3>Papers</h3>
+
+<ul class="entry-list">
+  <li>
+    <div class="entry-title">
+      <a href="#">Causal Reasoning Has a Role to Play in Out of Domain Generalization</a>
+      <div class="entry-sub">
+        <span class="me">Rohan Singh</span>, Alex D'Amour, Maggie Makar · Under Review, ICML 2026
+      </div>
+    </div>
+    <div class="entry-date">Mar 2026</div>
+  </li>
+</ul>
+
+<h3>Research Write-ups</h3>
+
+<ul class="entry-list">
+  <li>
+    <div class="entry-title">
+      <a href="causal-ood.html">Causal Reasoning for Out-of-Domain Generalization</a>
+      <div class="entry-sub">Why no one-size-fits-all causal method works, what headroom analysis reveals, and when to use proxy adjustment vs. feature selection.</div>
+    </div>
+    <div class="entry-date">Mar 2026</div>
+  </li>
+  <li>
+    <div class="entry-title">
+      <a href="difficult-examples.html">Detecting Difficult Training Examples</a>
+      <div class="entry-sub">Variance of Gradients, Area Under Margin, and model sparsification for surfacing mislabeled and underrepresented data. Work with Dr. Vineet Gupta at Google.</div>
+    </div>
+    <div class="entry-date">Summer 2022</div>
+  </li>
+</ul>
+
+<h3>Projects</h3>
+
+<ul class="entry-list">
+  <li>
+    <div class="entry-title">
+      <a href="#">Sequential LLM Knowledge Distillation Across Large Capacity Gaps</a>
+      <div class="entry-sub">Multi-stage distillation (7B → 1.5B → 0.5B). 22.8% perplexity reduction, +8.6 Top-1 accuracy vs direct/parallel distillation.</div>
+    </div>
+    <div class="entry-date">Fall 2025</div>
+  </li>
+  <li>
+    <div class="entry-title">
+      <a href="#">Cloud–Edge VLMs for Autonomous Driving Control</a>
+      <div class="entry-sub">Hybrid cloud–edge VLM architecture. Throttled offloading reduces speed MAE by 37%, cuts cloud calls and runtime by ~50%.</div>
+    </div>
+    <div class="entry-date">Fall 2025</div>
+  </li>
+  <li>
+    <div class="entry-title">
+      <a href="#">Benchmarking Systematic Knowledge Editing in LLMs</a>
+      <div class="entry-sub">Synthetic benchmarks for reasoning-based knowledge editing. ROME, MEND, and fine-tuning all fail on arithmetic/logical rule updates.</div>
+    </div>
+    <div class="entry-date">Spring 2025</div>
+  </li>
+  <li>
+    <div class="entry-title">
+      <a href="#">LLM-Based Sepsis Prediction on MIMIC-IV</a>
+      <div class="entry-sub">F1 0.775, beating prior SOTA (F1 0.61). Part of the ChartrOS clinical ML platform.</div>
+    </div>
+    <div class="entry-date">2026</div>
+  </li>
+</ul>
+
+<h3>Experience</h3>
+
+<ul class="exp-list">
+  <li>
+    <div class="exp-header">
+      <div><span class="exp-role">Machine Learning Engineer</span><span class="exp-co"> · ChartrOS</span></div>
+      <span class="exp-date">Jan 2026 – Present</span>
+    </div>
+    <div class="exp-desc">
+      RAG pipelines over longitudinal clinical data (Azure, MongoDB). Concurrent fault-tolerant ingestion pipelines.
+      Knowledge-graph patient representations fusing structured EHR with unstructured notes. LLM sepsis prediction (F1 0.775).
+    </div>
+  </li>
+  <li>
+    <div class="exp-header">
+      <div><span class="exp-role">Graduate Research Assistant</span><span class="exp-co"> · University of Michigan, Prof. Maggie Makar</span></div>
+      <span class="exp-date">Sep 2024 – Dec 2025</span>
+    </div>
+    <div class="exp-desc">
+      First-author study on causal reasoning for OOD generalization (under review, ICML 2026).
+      Distributed headroom evaluation across 16 tasks via Ray. Diagnosed unobserved confounding as dominant failure mode.
+    </div>
+  </li>
+  <li>
+    <div class="exp-header">
+      <div><span class="exp-role">Undergraduate Researcher</span><span class="exp-co"> · Google, Dr. Vineet Gupta</span></div>
+      <span class="exp-date">May – Aug 2022</span>
+    </div>
+    <div class="exp-desc">
+      Gradient and margin-based methods for detecting mislabeled training data.
+      Sparsification analysis showing pruning disproportionately hurts underrepresented classes.
+    </div>
+  </li>
+  <li>
+    <div class="exp-header">
+      <div><span class="exp-role">Undergraduate Researcher</span><span class="exp-co"> · Cornell University</span></div>
+      <span class="exp-date">May – Aug 2023</span>
+    </div>
+    <div class="exp-desc">
+      Robust policy-learning under worst-case distribution shift. Identified scalability barriers in Wasserstein-based robustness methods.
+    </div>
+  </li>
+  <li>
+    <div class="exp-header">
+      <div><span class="exp-role">Teaching Assistant</span><span class="exp-co"> · Cornell &amp; UMich</span></div>
+      <span class="exp-date">Aug 2022 – Dec 2025</span>
+    </div>
+    <div class="exp-desc">
+      Reinforcement Learning, Large-Scale Machine Learning, Discrete Mathematics.
+    </div>
+  </li>
+</ul>
+
+<h3>Education</h3>
+
+<ul class="exp-list">
+  <li>
+    <div class="exp-header">
+      <div><span class="exp-role">MS Computer Science</span><span class="exp-co"> · University of Michigan</span></div>
+      <span class="exp-date">3.93 · Dec 2025</span>
+    </div>
+    <div class="exp-desc">RL, Foundations of LLMs, Science of LLMs, Information Theory, Optimization, Randomness &amp; Computation, Advanced Networks</div>
+  </li>
+  <li>
+    <div class="exp-header">
+      <div><span class="exp-role">BA Computer Science &amp; Mathematics</span><span class="exp-co"> · Cornell University</span></div>
+      <span class="exp-date">3.80 · May 2024</span>
+    </div>
+    <div class="exp-desc">Large-Scale ML, RL, Probability Theory, Stochastic Processes, Robotic Decision Making, Advanced Linear Algebra, OS</div>
+  </li>
+</ul>
+
+<h3>Skills</h3>
+
+<div class="skills-row">
+  <div>
+    <h4>Languages &amp; Tools</h4>
+    <ul><li>Python, SQL, Git</li><li>PyTorch, Ray</li><li>pandas, NumPy, scikit-learn</li></ul>
+  </div>
+  <div>
+    <h4>ML &amp; Research</h4>
+    <ul><li>LLMs, Knowledge Distillation</li><li>Causal Inference, RL</li><li>Information Theory, VLMs</li></ul>
+  </div>
+  <div>
+    <h4>Systems</h4>
+    <ul><li>RAG, Knowledge Graphs</li><li>Azure, AWS Bedrock</li><li>MongoDB, Distributed (Ray)</li></ul>
+  </div>
+</div>
+
+<hr>
+<p style="font-size: 13px; color: rgba(255,255,255,0.3);">© 2026 Rohan Singh</p>
+
+</div>
+
+<script>
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let w, h, stars;
+
+function resize() {
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = document.documentElement.scrollHeight;
+}
+
+function createStars() {
+  const count = Math.floor((w * h) / 8000);
+  stars = [];
+  for (let i = 0; i < count; i++) {
+    stars.push({
+      x: Math.random() * w,
+      y: Math.random() * h,
+      r: Math.random() * 1.2 + 0.3,
+      vx: (Math.random() - 0.5) * 0.15,
+      vy: (Math.random() - 0.5) * 0.1,
+      opacity: Math.random() * 0.5 + 0.15,
+      twinkleSpeed: Math.random() * 0.008 + 0.003,
+      twinklePhase: Math.random() * Math.PI * 2,
+    });
+  }
+}
+
+function draw(t) {
+  ctx.clearRect(0, 0, w, h);
+  for (const s of stars) {
+    s.x += s.vx;
+    s.y += s.vy;
+    if (s.x < -5) s.x = w + 5;
+    if (s.x > w + 5) s.x = -5;
+    if (s.y < -5) s.y = h + 5;
+    if (s.y > h + 5) s.y = -5;
+
+    const flicker = Math.sin(t * s.twinkleSpeed + s.twinklePhase) * 0.3 + 0.7;
+    const alpha = s.opacity * flicker;
+
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200, 210, 230, ${alpha})`;
+    ctx.fill();
+  }
+  requestAnimationFrame(draw);
+}
+
+function init() {
+  resize();
+  createStars();
+  requestAnimationFrame(draw);
+}
+
+window.addEventListener('resize', () => { resize(); createStars(); });
+window.addEventListener('load', init);
+
+// re-size canvas when content changes height (e.g. after fonts load)
+new ResizeObserver(() => {
+  canvas.height = document.documentElement.scrollHeight;
+  h = canvas.height;
+}).observe(document.body);
+</script>
+
 </body>
 </html>

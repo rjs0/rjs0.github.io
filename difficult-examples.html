@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detecting Difficult Training Examples — Rohan Singh</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+</head>
+<body class="post-page">
+<div class="page-content">
+
+<a href="portfolio.html" class="back-link">← Rohan Singh</a>
+
+<h1>Detecting Difficult Training Examples</h1>
+
+<div class="post-meta">
+  Rohan Singh · Guided by Dr. Vineet Gupta (Google Ads) · Summer 2022
+</div>
+
+<div class="post-body">
+
+<p>
+  The goal of this project is to evaluate techniques for detecting <em>difficult examples</em> during training — examples that are challenging for a model to classify. Beyond the usual sources of difficulty (blurry images, ambiguous text), we focus on systematic issues: mislabeling, bias in training data, and class rarity. These are harder to spot but often more consequential.
+</p>
+
+<p>
+  We evaluated three detection techniques on controlled MNIST experiments, then analyzed their behavior under label noise and uneven class distributions.
+</p>
+
+<h2>Techniques</h2>
+
+<h4>1. Variance of Gradients (VoG)</h4>
+
+<p>
+  A large variance in gradients throughout training can quantify example difficulty. The idea is that a mislabeled or ambiguous example will receive inconsistent gradient signals across epochs — the model is "confused" about what to learn from it.
+</p>
+
+<p>
+  Given an input image with pixels $x_i$ for $i = 1, \ldots, n$, we compute the gradient of the pre-softmax activation $A^l_p$ with respect to each pixel, where $l$ is the pre-softmax layer and $p$ is the index of the predicted class:
+</p>
+
+<div class="math-block">
+  $$\mathbf{S} = \frac{\partial A^l_p}{\partial x_i}$$
+</div>
+
+<p>
+  We compute $\mathbf{S}$ at $K$ checkpoints during training. After checkpoint $t$, we have $\mathbf{S}_t$. The mean across checkpoints is:
+</p>
+
+<div class="math-block">
+  $$\mu = \frac{1}{K} \sum_{t=1}^{K} \mathbf{S}_t$$
+</div>
+
+<p>
+  The variance of gradients at each pixel $p$ is:
+</p>
+
+<div class="math-block">
+  $$\text{VoG}_p = \sqrt{\frac{1}{K} \sum_{t=1}^{K} (\mathbf{S}_t - \mu)^2}$$
+</div>
+
+<p>
+  The overall score for the image is the average across all pixels:
+</p>
+
+<div class="math-block">
+  $$\text{VoG} = \frac{1}{N} \sum_{t=1}^{N} \text{VoG}_p$$
+</div>
+
+<p>
+  This is fully unsupervised — it only requires the gradient updates from backpropagation during normal training.
+</p>
+
+<h4>2. Area Under Margin (AUM)</h4>
+
+<p>
+  If a model is confident in a prediction, the logit of the predicted class should be much larger than the next-highest logit. The margin at epoch $t$ for a training example $(\mathbf{x}, y)$ is:
+</p>
+
+<div class="math-block">
+  $$M^{(t)}(\mathbf{x}, y) = z^{(t)}_y(\mathbf{x}) - \max_{i \neq y} z^{(t)}_i(\mathbf{x})$$
+</div>
+
+<p>
+  where $z^{(t)}(\mathbf{x})$ is the logits vector (pre-softmax) at epoch $t$. The AUM is the cumulative margin across training. A smaller AUM means lower confidence — the model never strongly commits to the assigned label, suggesting the example may be mislabeled or inherently ambiguous.
+</p>
+
+<h4>3. Sparse Model Comparison</h4>
+
+<p>
+  When an example is hard to predict, sparsifying the model can disproportionately harm accuracy on these examples. Pruning removes the nuances the model learned to handle edge cases. We compare accuracy between a pruned and unpruned model trained on the exact same batches — examples where only the sparse model fails are likely "difficult."
+</p>
+
+<p>
+  Concretely, after each epoch we zero out the 10% of weights with smallest magnitude in each layer. After 5 epochs, 50% of parameters are zero. We then count how many test examples the unpruned model classifies correctly that the pruned model gets wrong, broken down by class.
+</p>
+
+<h2>Experiments</h2>
+
+<h3>Section I: Swapping Labels</h3>
+
+<p>
+  We trained a simple CNN (two conv layers, two FC layers) on MNIST for 5 epochs, randomly swapping 2% of training labels. We then ranked all 60,000 examples by their VoG score or AUM and examined where the mislabeled examples fell in the ranking.
+</p>
+
+<h4>VoG Results</h4>
+
+<p>
+  Each example's variance score was computed, then all examples were sorted by score. We plotted density histograms of the <em>rank</em> of mislabeled images only. The distributions are consistently left-skewed — mislabeled images tend to have high VoG rank (high variance), confirming that the model receives inconsistent gradient signals on these examples throughout training. This effect is visible early (epoch 1), mid-training (epoch 3), and late (epoch 5).
+</p>
+
+<h4>AUM Results</h4>
+
+<p>
+  The same setup, but ranking by AUM. Here, mislabeled images cluster at <em>low</em> rank — small margins, low confidence. The density histograms are right-skewed: the model never becomes confident about mislabeled examples, giving them consistently small margins between the assigned label's logit and the runner-up.
+</p>
+
+<div class="note">
+  Both VoG and AUM reliably surface mislabeled examples, but through different lenses: VoG captures gradient instability (the model keeps changing its mind), while AUM captures persistent low confidence (the model is never sure).
+</div>
+
+<h3>Section II: Uneven Data Distributions</h3>
+
+<p>
+  We simulated class imbalance by removing 95% of a single digit's training data in MNIST, then evaluated whether the remaining examples of that class are identified as "difficult."
+</p>
+
+<h4>Sparse Model Results</h4>
+
+<p>
+  For each of 10 experiments (one per digit), we compared the sparse and unsparse models' accuracy. Sparsification disproportionately hurt accuracy on the underrepresented class. For example, removing 95% of the 9s led to far more misclassified 9s in the sparse model than in the unsparse one — much more so than for other digits.
+</p>
+
+<p>
+  A baseline comparison (even class distribution) shows that sparsification causes roughly uniform accuracy degradation across classes. The uneven distribution experiments show dramatically different patterns, confirming that pruning amplifies bias against underrepresented classes.
+</p>
+
+<h4>AUM under Imbalance</h4>
+
+<p>
+  Removing 95% of a class consistently drops the AUM for that class. The model has lower confidence on underrepresented examples — it hasn't seen enough of them to build strong logit separation.
+</p>
+
+<h4>VoG under Imbalance — A Surprising Result</h4>
+
+<p>
+  Counter to expectation, removing 95% of a class <em>reduced</em> the variance of gradients for that class, giving it the lowest VoG score. This is surprising — one might expect rare examples to have high variance. A possible explanation is that with so few examples, the model quickly "gives up" on the class rather than oscillating, leading to consistently low (but wrong) gradients. This finding warrants further investigation.
+</p>
+
+<h2>Directions</h2>
+
+<p>
+  We identified three downstream applications for difficult-example detection:
+</p>
+
+<ul>
+  <li><strong>Efficiency via expert routing:</strong> Use a simple model for most data, routing detected-difficult examples to a larger, more expensive model for better accuracy.</li>
+  <li><strong>Membership inference:</strong> Difficulty scores may differ systematically between training and test data, potentially conditioning membership inference attacks on hardness level.</li>
+  <li><strong>Curriculum training:</strong> Order training data from easy to hard, letting the model learn basic patterns before encountering edge cases — mimicking how students learn in a classroom.</li>
+</ul>
+
+</div>
+
+<hr>
+<p style="font-size: 13px; color: #999;"><a href="portfolio.html" style="color:#999;">← Back</a></p>
+
+</div>
+</body>
+</html>

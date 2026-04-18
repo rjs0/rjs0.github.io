@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Causal Reasoning for OOD Generalization — Rohan Singh</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+</head>
+<body class="post-page">
+<div class="page-content">
+
+<a href="portfolio.html" class="back-link">← Rohan Singh</a>
+
+<h1>Causal Reasoning for Out-of-Domain Generalization</h1>
+
+<div class="post-meta">
+  Rohan Singh, Alex D'Amour, Maggie Makar · Under Review, ICML 2026 · March 2026
+</div>
+
+<div class="post-body">
+
+<p>
+  Recent work (Nastl &amp; Hardt, 2024) has called into question the utility of causal approaches to OOD generalization, concluding that "it proved infeasible to make use of causal techniques for better out-of-domain generalization." Many in the ML community took this as a strong rebuke of causality for prediction under distribution shift.
+</p>
+
+<p>
+  We have a different interpretation. This post summarizes our position paper, which argues that <strong>causal reasoning puts essential structure on OOD generalization problems</strong>, and that the recent negative results stem from testing the wrong method on the wrong problem — not from a failure of the causal framework itself.
+</p>
+
+<h2>The Problem Setup</h2>
+
+<p>
+  In domain generalization, we train a predictor $f(X)$ on data $\mathcal{D} \sim P_s(X, Y)$ and want it to perform well under a shifted distribution $P_t \neq P_s$. Formally, we seek:
+</p>
+
+<div class="math-block">
+  $$f^* = \arg\min_{f \in \mathcal{F}} \max_{P_t \in \mathcal{P}} \mathbb{E}_{(X,Y) \sim P_t}[\ell(f(X), Y)]$$
+</div>
+
+<p>
+  This only differs from standard ERM when the conditional $P(Y \mid X)$ changes between source and target. If $P_s(Y \mid X) \approx P_t(Y \mid X)$, then standard training is already near-optimal — there's nothing for a specialized OOD method to fix.
+</p>
+
+<h2>A Key Misconception: Stable Causation ≠ Stable Correlation</h2>
+
+<p>
+  Causal reasoning is often promoted as leveraging "stable causal mechanisms" for robust prediction. But this gets flattened into a misconception: that causally related variables should exhibit stable <em>statistical</em> relationships across domains.
+</p>
+
+<div class="definition">
+  <strong>Core insight:</strong> Just as correlation does not imply causation, <em>stable causation does not imply stable correlation</em>.
+</div>
+
+<p>
+  Even when the mechanism $P(Y \mid Pa(Y))$ generating target $Y$ from its causal parents $Pa(Y)$ is invariant across domains, the statistical relationship $P(Y \mid X \cap Pa(Y))$ can change. The most common reason is <strong>unmeasured confounding</strong>: unobserved variables $U$ that are common causes of both $Y$ and the observed parents $X \cap Pa(Y)$.
+</p>
+
+<p>
+  If the distribution of $U$ or its correlation with observed parents shifts between domains, the observed statistical relationship $P(Y \mid X \cap Pa(Y))$ shifts too — even though the underlying causal mechanism is perfectly stable. This is why adjusting for confounding is the central problem in causal inference.
+</p>
+
+<h2>Three Shift Structures</h2>
+
+<p>
+  Different causal structures induce different failure modes, each requiring different solutions. Let $E$ denote the environment, $X_{pa}$ observed parents of $Y$, $X_{desc}$ descendants of $Y$, and $X_Z$ proxies for unobserved parents.
+</p>
+
+<h4>1. Spurious Correlation in the Causal Direction</h4>
+
+<p>
+  Structure: $E \to X_{desc} \leftarrow Y \leftarrow X_{pa} \leftarrow E$, with $P(Y \mid X_{pa})$ stable but $P(Y \mid X_{pa}, X_{desc})$ shifting because conditioning on $X_{desc}$ opens the path $Y \to X_{desc} \leftarrow E$.
+</p>
+
+<p>
+  <strong>Problem:</strong> Too much information — downstream features add in-distribution signal that becomes unstable OOD.
+  <br><strong>Solution:</strong> Feature selection or lossy representation learning to recover $P(Y \mid X_{pa})$.
+</p>
+
+<p>
+  <em>Example:</em> Sentiment classification across product categories. "Helpful" annotations (a descendant of sentiment) carry category-specific signal that doesn't transfer, but the text-to-sentiment relationship is stable.
+</p>
+
+<h4>2. Unobserved Confounding with Proxy Variables</h4>
+
+<p>
+  Structure: $E \to U_{pa} \to Y$ with $U_{pa}$ unobserved. Since $U_{pa}$ is unobserved, the path $E \to U_{pa} \to Y$ means $P(Y \mid X_{pa})$ shifts even though $X_{pa}$ contains all <em>observed</em> causal parents.
+</p>
+
+<p>
+  <strong>Problem:</strong> Too little information — we can't condition on the true causal parents because they're unobserved.
+  <br><strong>Solution:</strong> Conditioning on proxy variables $X_Z$ that give a noisy view of $U_{pa}$. Proximal adjustment methods can offer guarantees when the proxy relationship is well-characterized.
+</p>
+
+<div class="note">
+  This is the critical case for the Nastl &amp; Hardt benchmarks. The "select causal parents" heuristic is exactly wrong here — it <em>removes</em> proxy variables that would help stabilize the predictor.
+</div>
+
+<p>
+  <em>Example:</em> Predicting student performance. The tested skill is observed, but student background (a key causal parent) is not. Proxies like grade level or prior test scores can stabilize prediction across shifts in the student population.
+</p>
+
+<h4>3. Spurious Correlation in the Anti-Causal Direction</h4>
+
+<p>
+  Structure: $Y \to X_{desc}$ and $V \to X_{desc}$, with $Y$ and $V$ correlated differently across environments.
+</p>
+
+<p>
+  <strong>Problem:</strong> "Select causal parents" is wholly unworkable — $Y$ is a <em>parent</em> of $X$, not a child.
+  <br><strong>Solution:</strong> Causally-motivated penalties at training time to focus on features in $X$ influenced by $Y$ and not $V$.
+</p>
+
+<p>
+  <em>Example:</em> Diagnosing conditions from chest X-rays. The X-ray is a descendant of both the condition ($Y$) and demographic factors ($V$). In-distribution, demographic correlations with $Y$ improve accuracy, but these don't transfer across hospitals with different demographics.
+</p>
+
+<h2>Headroom Analysis</h2>
+
+<p>
+  The key empirical contribution of our paper is a <strong>headroom analysis</strong> that asks: is there even a $P(Y \mid X)$ shift to address?
+</p>
+
+<p>
+  We split the OOD test data into an oracle training set $\mathcal{D}_{Or} \sim P_t$ and a held-out test set $\mathcal{D}_{Ts} \sim P_t$. We train two models: $f_{Tr}$ on in-distribution data and $f_{Or}$ on the oracle data. Headroom is:
+</p>
+
+<div class="math-block">
+  $$\text{Headroom}(T) = \frac{1}{n_{Ts}} \sum_{i \in \mathcal{D}_{Ts}} [y_i = f_{Or}(x_i)] - \frac{1}{n_{Ts}} \sum_{i \in \mathcal{D}_{Ts}} [y_i = f_{Tr}(x_i)]$$
+</div>
+
+<p>
+  If headroom is near zero, the in-distribution predictor is already near-optimal on the target — there's no $P(Y \mid X)$ shift for <em>any</em> method (causal or otherwise) to exploit.
+</p>
+
+<h4>Results</h4>
+
+<p>
+  Across the 16 benchmarks in Nastl &amp; Hardt (2024):
+</p>
+
+<ul>
+  <li><strong>14 out of 16 tasks have no meaningful headroom</strong> (less than 2% accuracy gap, not statistically significant). The in-distribution predictor already performs near-optimally OOD.</li>
+  <li>These benchmarks can show large <em>shift gaps</em> (difference in accuracy between ID test and OOD test for the same predictor), but this is driven by changes in the marginal $P(X)$, not by instability in $P(Y \mid X)$.</li>
+</ul>
+
+<div class="definition">
+  <strong>Key distinction:</strong> Shift gap measures how much harder the OOD data is overall. Headroom measures whether a better predictor <em>exists</em> for the OOD data. Large shift gap with zero headroom means the data is harder but the model is already doing as well as possible.
+</div>
+
+<h4>The Two Tasks with Headroom</h4>
+
+<p>
+  <strong>Hospital Readmission:</strong> Predicting 30-day readmission, with shift on admission source. The dataset omits many critical proxies for patient condition — of 848 primary diagnoses in the original UCI data, only 24 are retained. Missing chronic condition codes (malignant cancers, leukemia, severe liver diseases) introduce unobserved confounding. Causal parent selection can't help; enriching the feature set with proxy variables is the right approach.
+</p>
+
+<p>
+  <strong>Hypertension:</strong> Predicting hypertension diagnosis from questionnaire data, with shift on BMI category. Key causal parents (family history, genetics, several comorbidities) are unobserved, introducing confounding. Again, the causal prescription is to <em>add</em> features, not remove them.
+</p>
+
+<h2>Implications</h2>
+
+<p>
+  The evaluations in Nastl &amp; Hardt (2024) do little to test causal methodology:
+</p>
+
+<ul>
+  <li>For 14/16 tasks, there's no problem to solve — ERM is already near-optimal OOD.</li>
+  <li>For the 2 tasks with headroom, unobserved confounding is the dominant failure mode, and causal parent selection is theoretically <em>contraindicated</em>.</li>
+  <li>The results <em>do</em> highlight the need for better benchmarks that exhibit genuine $P(Y \mid X)$ shifts and distinguish between different shift structures.</li>
+</ul>
+
+<p>
+  The broader lesson: there is no one-size-fits-all solution to OOD generalization. Causal reasoning provides the framework for understanding <em>why</em> a particular shift is happening and selecting the appropriate method. Dismissing causality based on benchmarks that lack meaningful shifts, using a method that was wrong for the problem structure, misses the point.
+</p>
+
+<h2>What Good Benchmarks Need</h2>
+
+<p>
+  We propose that useful benchmarks for OOD generalization should satisfy:
+</p>
+
+<ul>
+  <li><strong>Clear headroom:</strong> A meaningful shift in $P(Y \mid X)$ must exist, as measured by the equation above.</li>
+  <li><strong>Identified shift types:</strong> Benchmarks should distinguish between the three shift structures (or others), so methods can be compared on the problems they're designed for.</li>
+  <li><strong>Matched evaluation:</strong> Algorithms should be evaluated on the shift types they target, not averaged across unrelated scenarios.</li>
+</ul>
+
+<p>
+  Existing work like WILDS (Koh et al., 2020) and WhyShift (Liu et al., 2023) provides examples where these properties are satisfied. The ACS data used in TableShift contains suitable shifts that were not selected in Nastl &amp; Hardt's evaluations.
+</p>
+
+</div>
+
+<hr>
+<p style="font-size: 13px; color: #999;"><a href="portfolio.html" style="color:#999;">← Back</a></p>
+
+</div>
+</body>
+</html>
