@@ -203,11 +203,11 @@ let w, h, stars;
 
 function resize() {
   w = canvas.width = window.innerWidth;
-  h = canvas.height = document.documentElement.scrollHeight;
+  h = canvas.height = window.innerHeight;
 }
 
 function createStars() {
-  const count = Math.floor((w * h) / 8000);
+  const count = Math.floor((w * h) / 4000);
   stars = [];
   for (let i = 0; i < count; i++) {
     stars.push({
@@ -253,11 +253,6 @@ function init() {
 window.addEventListener('resize', () => { resize(); createStars(); });
 window.addEventListener('load', init);
 
-// re-size canvas when content changes height (e.g. after fonts load)
-new ResizeObserver(() => {
-  canvas.height = document.documentElement.scrollHeight;
-  h = canvas.height;
-}).observe(document.body);
 </script>
 
 </body>
