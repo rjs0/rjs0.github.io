@@ -41,9 +41,9 @@
 <ul class="entry-list">
   <li>
     <div class="entry-title">
-      <a href="#">Causal Reasoning Has a Role to Play in Out of Domain Generalization</a>
+      Paper on causality with Alex D'Amour and Maggie Makar
       <div class="entry-sub">
-        <span class="me">Rohan Singh</span>, Alex D'Amour, Maggie Makar · Under Review, ICML 2026
+        <span class="me">Rohan Singh</span>, Alex D'Amour, Maggie Makar · Under Review, EAAMO
       </div>
     </div>
     <div class="entry-date">Mar 2026</div>
@@ -203,11 +203,11 @@ let w, h, stars;
 
 function resize() {
   w = canvas.width = window.innerWidth;
-  h = canvas.height = window.innerHeight;
+  h = canvas.height = document.documentElement.scrollHeight;
 }
 
 function createStars() {
-  const count = Math.floor((w * h) / 4000);
+  const count = Math.floor((w * h) / 8000);
   stars = [];
   for (let i = 0; i < count; i++) {
     stars.push({
@@ -253,6 +253,11 @@ function init() {
 window.addEventListener('resize', () => { resize(); createStars(); });
 window.addEventListener('load', init);
 
+// re-size canvas when content changes height (e.g. after fonts load)
+new ResizeObserver(() => {
+  canvas.height = document.documentElement.scrollHeight;
+  h = canvas.height;
+}).observe(document.body);
 </script>
 
 </body>
